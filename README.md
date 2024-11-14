@@ -45,3 +45,7 @@ The `LinkedList` structure provides a flexible, dynamically allocated list for g
 ### Stack
 
 The `Stack` structure provides a Last-In-First-Out (LIFO) stack with functions for adding, removing, and inspecting elements. It supports generic data.
+
+## License
+
+This project is licensed under the MIT License. See the LICENSE file for details.
