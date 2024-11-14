@@ -18,8 +18,8 @@ A C library that provides implementations for a generic linked list and stack, d
 1. Clone this repository to your local machine:
 
    ```bash
-   git clone https://github.com/username/utils-library.git
-   cd utils-library
+   git clone https://github.com/FlexReasonability/libutils.git
+   cd libutils
    ```
 
 2. Build the library:
@@ -38,6 +38,10 @@ A C library that provides implementations for a generic linked list and stack, d
 
 ## Usage
 
-# Linked List
+### Linked List
 
 The `LinkedList` structure provides a flexible, dynamically allocated list for generic data. Functions include adding, removing, retrieving elements, iterating, and performing transformations.
+
+### Stack
+
+The Stack structure provides a Last-In-First-Out (LIFO) stack with functions for adding, removing, and inspecting elements. It supports generic data.
