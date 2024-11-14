@@ -1,6 +1,14 @@
-#include "linked_list.h"
-
 #include <stdlib.h>
+#include <string.h>
+
+#include "node.h"
+
+struct LinkedList
+{
+    struct Node *head;
+    size_t size;
+    void (*free_data)(void *data);
+};
 
 /**
  * @brief Initialize a new linked list.
@@ -180,6 +188,186 @@ void *get_at(LinkedList *list, size_t position)
     }
 
     return current ? current->data : NULL;
+}
+
+/**
+ * @brief Apply a function to each element in the linked list.
+ *
+ * This function iterates over each element in the list and applies the given
+ * function to the data of each element.
+ *
+ * @param[in] list Pointer to the linked list.
+ * @param[in] func Function to apply to each element's data.
+ */
+void foreach(LinkedList *list, void (*func)(void *))
+{
+    Node *current = list->head;
+    while (current != NULL)
+    {
+        func(current->data);
+        current = current->next;
+    }
+}
+
+/**
+ * @brief Create a new list by applying a transformation function to each
+ * element.
+ *
+ * This function creates a new linked list, applying the given transformation
+ * function to each element's data in the original list and storing the result
+ * in the new list.
+ *
+ * @param[in] list Pointer to the linked list to map.
+ * @param[in] func Transformation function to apply to each element's data.
+ * @param[in] free_data Function to free the data in the new list. if set to
+ * NULL, the new created list will use the same free_data function.
+ * @return A new linked list with transformed elements.
+ */
+LinkedList *map(LinkedList *list, void *(*func)(void *),
+                void (*free_data)(void *))
+{
+    LinkedList *new_list =
+        init_linked_list(free_data ? free_data : list->free_data);
+    if (!new_list)
+        return NULL;
+
+    Node *current = list->head;
+    while (current != NULL)
+    {
+        void *new_data = func(current->data);
+        append(new_list, new_data);
+        current = current->next;
+    }
+
+    return new_list;
+}
+
+/**
+ * @brief Create a new list containing elements that satisfy a condition.
+ *
+ * This function creates a new linked list containing only the elements from
+ * the original list that satisfy the condition specified by the `predicate`
+ * function.
+ *
+ * @param[in] list Pointer to the linked list to filter.
+ * @param[in] predicate Function that returns 1 if an element should be
+ * included, 0 otherwise.
+ * @return A new linked list with filtered elements (copied).
+ */
+LinkedList *filter(LinkedList *list, int (*predicate)(void *))
+{
+    LinkedList *new_list = init_linked_list(list->free_data);
+    if (!new_list)
+        return NULL;
+
+    Node *current = list->head;
+    while (current != NULL)
+    {
+        if (predicate(current->data))
+        {
+            void *new_data = malloc(sizeof(*(current->data)));
+            if (new_data)
+            {
+                memcpy(new_data, current->data, sizeof(*(current->data)));
+                append(new_list, new_data);
+            }
+        }
+        current = current->next;
+    }
+
+    return new_list;
+}
+
+static Node *merge(Node *left, Node *right,
+                   int (*cmp)(const void *, const void *));
+static Node *merge_sort(Node *head, int (*cmp)(const void *, const void *));
+static Node *split_list(Node *head);
+
+/**
+ * @brief Sort the linked list in place using the merge sort algorithm.
+ *
+ * This function sorts the linked list in place by modifying the links
+ * between nodes. It uses the merge sort algorithm for optimal efficiency on
+ * linked lists.
+ *
+ * @param[in] list Pointer to the linked list to sort.
+ * @param[in] cmp Comparison function that returns <0, 0, or >0 based on
+ * element comparison.
+ */
+void sort(LinkedList *list, int (*cmp)(const void *, const void *))
+{
+    if (!list || !list->head || list->size < 2)
+        return;
+    list->head = merge_sort(list->head, cmp);
+}
+
+// Fonction de tri fusion pour les listes chaînées
+static Node *merge_sort(Node *head, int (*cmp)(const void *, const void *))
+{
+    // Cas de base : liste vide ou liste avec un seul élément
+    if (!head || !head->next)
+        return head;
+
+    // Diviser la liste en deux sous-listes
+    Node *middle = split_list(head);
+    Node *left = head;
+    Node *right = middle;
+
+    // Trier chaque moitié
+    left = merge_sort(left, cmp);
+    right = merge_sort(right, cmp);
+
+    // Fusionner les deux moitiés triées
+    return merge(left, right, cmp);
+}
+
+// Fonction pour diviser la liste en deux à partir du milieu
+static Node *split_list(Node *head)
+{
+    Node *slow = head;
+    Node *fast = head->next;
+
+    // Utiliser deux pointeurs pour trouver le milieu
+    while (fast && fast->next)
+    {
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+
+    Node *middle = slow->next;
+    slow->next = NULL; // Séparer la liste en deux
+    return middle;
+}
+
+// Fonction pour fusionner deux sous-listes triées
+static Node *merge(Node *left, Node *right,
+                   int (*cmp)(const void *, const void *))
+{
+    // Liste temporaire pour le résultat
+    Node dummy;
+    Node *tail = &dummy;
+    dummy.next = NULL;
+
+    // Fusionner les deux listes
+    while (left && right)
+    {
+        if (cmp(left->data, right->data) <= 0)
+        {
+            tail->next = left;
+            left = left->next;
+        }
+        else
+        {
+            tail->next = right;
+            right = right->next;
+        }
+        tail = tail->next;
+    }
+
+    // Ajouter les éléments restants
+    tail->next = left ? left : right;
+
+    return dummy.next;
 }
 
 /**
