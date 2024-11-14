@@ -45,8 +45,13 @@ test_linked_list: $(TARGET)
 		$(EXAMPLE_DIR)/linked_list.c -L. -lutils
 	./$(LINKED_LIST_TEST_EXECUTABLE)
 
+test_stack: $(TARGET)
+	$(CC) $(CFLAGS) -o test_stack \
+		$(EXAMPLE_DIR)/stack.c -L. -lutils
+	./test_stack
+
 # Clean up build artifacts
 clean:
-	rm -rf $(OBJ_DIR) $(TARGET) $(TEST_EXECUTABLE) $(LINKED_LIST_TEST_EXECUTABLE)
+	rm -rf $(OBJ_DIR) $(TARGET) $(TEST_EXECUTABLE) $(LINKED_LIST_TEST_EXECUTABLE) test_stack
 
-.PHONY: all clean check test_linked_list
+.PHONY: all clean check test_linked_list test_stack
